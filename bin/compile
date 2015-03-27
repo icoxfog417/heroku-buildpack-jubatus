@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir>
+
+# Get arguments
+BUILD_DIR=$1
+CACHE_DIR=$2
+
+APT_DIR="$CACHE_DIR/apt/"
+APT_CACHE_DIR="$APT_DIR/cache"
+APT_STATE_DIR="$APT_DIR/state"
+
+mkdir -p "$APT_CACHE_DIR/archives/partial"
+mkdir -p "$APT_STATE_DIR/lists/partial"
+
+APT_OPTIONS="-o debug::nolocking=true -o dir::etc::sourceparts=$APT_DIR -o dir::cache=$APT_CACHE_DIR -o dir::state=$APT_STATE_DIR"
+
+# Prepare to install
+touch $APT_DIR/jubatus.list
+echo "deb http://download.jubat.us/apt binary/" > $APT_DIR/jubatus.list
+
+apt-get $APT_OPTIONS update
+
+# Install Jubatus
+apt-get $APT_OPTIONS -y --force-yes -d install --reinstall jubatus
+mkdir -p $BUILD_DIR/.apt
+
+for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
+  dpkg -x $DEB $BUILD_DIR/.apt/
+done
+
+# Read the profile
+ls $BUILD_DIR/.apt/opt/
+source  $BUILD_DIR/.apt/opt/jubatus/profile
