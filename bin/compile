@@ -5,6 +5,18 @@
 BUILD_DIR=$1
 CACHE_DIR=$2
 
+function topic() {
+  echo "-----> $*"
+}
+
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+
 APT_DIR="$CACHE_DIR/apt/"
 APT_CACHE_DIR="$APT_DIR/cache"
 APT_STATE_DIR="$APT_DIR/state"
@@ -18,18 +30,20 @@ APT_OPTIONS="-o debug::nolocking=true -o dir::etc::sourceparts=$APT_DIR -o dir::
 touch $APT_DIR/jubatus.list
 echo "deb http://download.jubat.us/apt binary/" > $APT_DIR/jubatus.list
 
-apt-get $APT_OPTIONS update
+topic "Updating apt caches"
+apt-get $APT_OPTIONS update | indent
 
 # Install Jubatus
 PACKAGES=(libmsgpack-dev libonig-dev liblog4cxx10-dev jubatus)
-for p in ${PACKAGES[@]}; do
-    echo "Installing $p ..."
-    apt-get $APT_OPTIONS -y --force-yes -d install --reinstall $p
+for P in ${PACKAGES[@]}; do
+    topic "Fetching .debs for $P"
+    apt-get $APT_OPTIONS -y --force-yes -d install --reinstall $P | indent
 done
 
 mkdir -p $BUILD_DIR/.apt
 for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
-  dpkg -x $DEB $BUILD_DIR/.apt/
+    topic "Installing $(basename $DEB)"
+    dpkg -x $DEB $BUILD_DIR/.apt/
 done
 
 # Set environment variables
@@ -44,13 +58,3 @@ export CPPPATH="$INCLUDE_PATH"
 export PKG_CONFIG_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 source $BUILD_DIR/.apt/opt/jubatus/profile
-
-# Run jubatus
-if [ ! -f $BUILD_DIR/jubatus.sh ]; then
-    echo "You have to prepare jubatus.sh to run the jubatus server"
-    exit 1
-else
-    cd $BUILD_DIR
-    bash jubatus.sh
-    cd -
-fi
