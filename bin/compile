@@ -29,5 +29,12 @@ for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
 done
 
 # Read the profile
-ls $BUILD_DIR/.apt/opt/
 source  $BUILD_DIR/.apt/opt/jubatus/profile
+
+# Run jubatus
+if [ ! -f $BUILD_DIR/jubatus.sh ]; then
+    echo "You have to prepare jubatus.sh to run the jubatus server"
+    exit 1
+else
+    bash $BUILD_DIR/jubatus.sh
+fi
