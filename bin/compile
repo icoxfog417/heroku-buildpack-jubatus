@@ -28,8 +28,16 @@ for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
   dpkg -x $DEB $BUILD_DIR/.apt/
 done
 
-# Read the profile
-source  $BUILD_DIR/.apt/opt/jubatus/profile
+# Set environment variables
+JUBATUS_HOME="$BUILD_DIR/.apt/opt/jubatus"
+export PATH="$JUBATUS_HOME/bin:$PATH"
+export LD_LIBRARY_PATH="$JUBATUS_HOME/lib:$LD_LIBRARY_PATH"
+export LIBRARY_PATH="$JUBATUS_HOME/lib:$LIBRARY_PATH"
+export INCLUDE_PATH="$JUBATUS_HOME/include:$INCLUDE_PATH"
+export CPATH="$INCLUDE_PATH"
+export CPPPATH="$INCLUDE_PATH"
+
+source $BUILD_DIR/.apt/opt/jubatus/profile
 
 # Run jubatus
 if [ ! -f $BUILD_DIR/jubatus.sh ]; then
