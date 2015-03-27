@@ -50,5 +50,7 @@ if [ ! -f $BUILD_DIR/jubatus.sh ]; then
     echo "You have to prepare jubatus.sh to run the jubatus server"
     exit 1
 else
-    bash $BUILD_DIR/jubatus.sh
+    cd $BUILD_DIR
+    bash jubatus.sh
+    cd -
 fi
